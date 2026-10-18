@@ -281,6 +281,7 @@ namespace CtrlTNav.Vsix.Services
 
                 lock (_indexGate)
                 {
+                    replacement.RecentUsage = _recentUsage;
                     _searchIndex = replacement;
                 }
 
@@ -311,10 +312,21 @@ namespace CtrlTNav.Vsix.Services
 
             try
             {
+                CtrlTNavOptions normalized = options.Normalize();
+                int capacity = normalized.RecentUsageCapacity;
+                string storagePath;
                 bool capacityChanged;
                 lock (_indexGate)
                 {
-                    capacityChanged = _recentUsage.Capacity != options.RecentUsageCapacity;
+                    capacityChanged = _recentUsage.Capacity != capacity;
+                    storagePath = _recentUsage.StorageFilePath;
+
+                    // Do not lose entries recorded since the last debounced save when the tracker is
+                    // replaced (the replacement reloads the file from disk).
+                    if (capacityChanged)
+                    {
+                        _recentUsage.Save();
+                    }
                 }
 
                 if (!capacityChanged)
@@ -322,7 +334,7 @@ namespace CtrlTNav.Vsix.Services
                     return;
                 }
 
-                var replacement = new RecentUsageTracker(_recentUsage.StorageFilePath, options.RecentUsageCapacity, _log);
+                var replacement = new RecentUsageTracker(storagePath, capacity, _log);
                 replacement.Load();
                 lock (_indexGate)
                 {
@@ -330,7 +342,7 @@ namespace CtrlTNav.Vsix.Services
                     _searchIndex.RecentUsage = replacement;
                 }
 
-                _log.Info("Recent-usage tracker reconfigured with capacity " + options.RecentUsageCapacity + ".");
+                _log.Info("Recent-usage tracker reconfigured with capacity " + capacity + ".");
             }
             catch (Exception ex)
             {
@@ -375,6 +387,9 @@ namespace CtrlTNav.Vsix.Services
                     replacement.AddRange(items);
                     lock (_indexGate)
                     {
+                        // Pick up a tracker that was replaced by UpdateOptions while this index was
+                        // being built.
+                        replacement.RecentUsage = _recentUsage;
                         _searchIndex = replacement;
                     }
 
@@ -393,7 +408,10 @@ namespace CtrlTNav.Vsix.Services
                     _log.Info("Received an index change without a file path and without a rebuild flag; ignoring.");
                 }
 
-                NotifyIndexStateChanged(force: false);
+                // Item changes are infrequent (one event per completed rebuild or file update) and the
+                // final "ready" event must never be dropped by the throttle: the popup refreshes its
+                // results only when it observes that the index became ready.
+                NotifyIndexStateChanged(force: true);
             }
             catch (Exception ex)
             {
@@ -416,7 +434,17 @@ namespace CtrlTNav.Vsix.Services
                 return;
             }
 
-            NotifyIndexStateChanged(force: false);
+            bool force = false;
+            try
+            {
+                force = _cppIndex.State != IndexStateEnum.Building;
+            }
+            catch
+            {
+                // Treat an unreadable state as advisory; the throttle still applies.
+            }
+
+            NotifyIndexStateChanged(force);
         }
 
         private void NotifyIndexStateChanged(bool force)

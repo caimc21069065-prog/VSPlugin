@@ -658,6 +658,18 @@ namespace CtrlTNav.Indexing
                     case "template":
                         ParseTemplatePrefix();
                         return;
+                    case "requires":
+                        if (_pendingTemplate)
+                        {
+                            // Leading requires-clause of a templated declaration:
+                            //   template <typename T> requires Constraint<T> class Foo { ... };
+                            // Skip the constraint expression and let the next Step() parse the declaration.
+                            SkipRequiresClause();
+                            return;
+                        }
+
+                        ParseGeneralDeclaration();
+                        return;
                     case "class":
                         ParseTypeDeclaration(ItemKind.Class);
                         return;
@@ -1115,6 +1127,94 @@ namespace CtrlTNav.Indexing
             }
 
             // -----------------------------------------------------------------------------------------
+            // C++20 requires-clauses
+            // -----------------------------------------------------------------------------------------
+
+            /// <summary>
+            /// Skips a requires-clause starting at the <c>requires</c> token. Supports concept ids
+            /// (<c>std::integral&lt;T&gt;</c>), nested requires-expressions, parenthesised expressions and
+            /// <c>&amp;&amp;</c>/<c>||</c> combinations. Stops at the first token that is not part of the
+            /// constraint expression, normally the declaration that follows it.
+            /// </summary>
+            private void SkipRequiresClause()
+            {
+                if (!IsWord(Tok, "requires"))
+                {
+                    return;
+                }
+
+                _i++; // requires
+                SkipAttributes();
+                SkipConstraintOperand();
+                while (IsPunct(Tok, "&&") || IsPunct(Tok, "||"))
+                {
+                    _i++;
+                    SkipConstraintOperand();
+                }
+            }
+
+            private void SkipConstraintOperand()
+            {
+                while (IsPunct(Tok, '!'))
+                {
+                    _i++;
+                }
+
+                SkipAttributes();
+
+                if (IsWord(Tok, "requires"))
+                {
+                    // Nested requires-expression: requires(T t) { t + t; }
+                    _i++;
+                    if (IsPunct(Tok, '('))
+                    {
+                        SkipBalancedParentheses();
+                    }
+
+                    if (IsPunct(Tok, '{'))
+                    {
+                        _i++;
+                        SkipBalancedBracesFromConsumed();
+                    }
+
+                    return;
+                }
+
+                if (IsPunct(Tok, '('))
+                {
+                    SkipBalancedParentheses();
+                    return;
+                }
+
+                while (Tok.Kind == CppTokenKind.Identifier)
+                {
+                    _i++;
+                    if (IsPunct(Tok, "::"))
+                    {
+                        _i++;
+                        continue;
+                    }
+
+                    if (IsPunct(Tok, '<'))
+                    {
+                        SkipBalancedAngles();
+                        if (IsPunct(Tok, "::"))
+                        {
+                            _i++;
+                            continue;
+                        }
+                    }
+
+                    if (IsPunct(Tok, '('))
+                    {
+                        SkipBalancedParentheses();
+                    }
+
+                    return;
+                }
+            }
+
+            // -----------------------------------------------------------------------------------------
             // template<...> prefix
             // -----------------------------------------------------------------------------------------
 
@@ -1226,7 +1326,15 @@ namespace CtrlTNav.Indexing
                             continue;
                         }
 
-                        if (word == "final" || word == "sealed" || word == "abstract" || word == "requires")
+                        if (word == "requires")
+                        {
+                            // Class-head requires-clause: class Foo requires Constraint<T> { ... };
+                            // The constraint must not be treated as part of the type name.
+                            SkipRequiresClause();
+                            continue;
+                        }
+
+                        if (word == "final" || word == "sealed" || word == "abstract")
                         {
                             _i++;
                             continue;

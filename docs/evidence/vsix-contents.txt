@@ -1,19 +1,19 @@
 VSIX: C:\Users\caimc\Desktop\VSPlugin\artifacts\CtrlTNav.GoToEverything.vsix
-Size: 133664 bytes (130.5 KB)
-SHA256: 10E717750A287581C2DDF91652BAEE106F4E893F7B691C8B0A199D144DEC4B52
-Packaged: 2026-10-18T17:14:59
+Size: 135339 bytes (132.2 KB)
+SHA256: 69C30FB894A7C9C020EE2DF65E66664D9EC0D406B845792D4733AA5EB3487383
+Packaged: 2026-10-18T17:52:15
 
 === Container entries ===
 CtrlTNav.Core.dll                 32768 bytes
-CtrlTNav.Indexing.dll             67072 bytes
+CtrlTNav.Indexing.dll             67584 bytes
 CtrlTNav.Matching.dll             31232 bytes
-CtrlTNav.pkgdef                    3178 bytes
-CtrlTNav.UI.dll                   55808 bytes
-CtrlTNav.Vsix.dll                 90112 bytes
-extension.vsixmanifest             3474 bytes
-Resources/getting-started.txt      1659 bytes
-Resources/license.txt              1078 bytes
-Resources/logo.png                 8743 bytes
+CtrlTNav.pkgdef                   3178 bytes
+CtrlTNav.UI.dll                   56832 bytes
+CtrlTNav.Vsix.dll                 91648 bytes
+extension.vsixmanifest            3484 bytes
+Resources/getting-started.txt     1659 bytes
+Resources/license.txt             1078 bytes
+Resources/logo.png                8743 bytes
 
 === Manifest ===
 Identity: CtrlTNav.GoToEverything 1.0.0
@@ -28,6 +28,7 @@ VSCT: warnings = 0
 merged resources contain Menus.ctmenu
 
 === pkgdef sections ===
+@="Ctrl+T Navigator for C++"
 @="CtrlTNavPackage"
 "Class"="CtrlTNav.Vsix.CtrlTNavPackage"
 "CodeBase"="$PackageFolder$\CtrlTNav.Vsix.dll"
@@ -35,13 +36,16 @@ merged resources contain Menus.ctmenu
 "{7cd65e41-7938-4826-a99a-0ec3b9bba331}"=dword:00000002
 "{7cd65e41-7938-4826-a99a-0ec3b9bba331}"=dword:00000002
 "{7cd65e41-7938-4826-a99a-0ec3b9bba331}"=", Menus.ctmenu, 1"
+@="#0"
 "Package"="{7cd65e41-7938-4826-a99a-0ec3b9bba331}"
+@="#0"
 "Package"="{7cd65e41-7938-4826-a99a-0ec3b9bba331}"
 "Page"="{906af635-e1aa-4b52-b9d3-1f2584b60e13}"
 "Package"="{7cd65e41-7938-4826-a99a-0ec3b9bba331}"
 "Package"="{7cd65e41-7938-4826-a99a-0ec3b9bba331}"
 
 === pkgdef registry path headings ===
+[$RootKey$\InstalledProducts\CtrlTNavPackage]
 [$RootKey$\Packages\{7cd65e41-7938-4826-a99a-0ec3b9bba331}]
 [$RootKey$\AutoLoadPackages\{adfc4e64-0397-11d1-9f4e-00a0c911004f}]
 [$RootKey$\AutoLoadPackages\{f1536ef8-92ec-443c-9ed7-fdadf150da82}]

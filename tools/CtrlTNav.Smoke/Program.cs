@@ -44,6 +44,12 @@ namespace CtrlTNav.Smoke
                 return 0;
             }
 
+            if (string.IsNullOrEmpty(parsed.Target))
+            {
+                PrintUsage();
+                return 1;
+            }
+
             var options = CtrlTNavOptions.CreateDefault();
             if (parsed.MaxFileSizeKb > 0)
             {

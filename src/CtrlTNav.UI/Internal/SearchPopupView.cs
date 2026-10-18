@@ -340,6 +340,7 @@ namespace CtrlTNav.UI.Internal
         internal void OnHidden()
         {
             CancelPendingSearches();
+            _searchVersion++;
             HideError();
         }
 
@@ -860,6 +861,11 @@ namespace CtrlTNav.UI.Internal
             try
             {
                 _queryText = _searchBox != null ? _searchBox.Text ?? string.Empty : string.Empty;
+
+                // Invalidate any in-flight search immediately: its results belong to an older query
+                // and must not be displayed while the new text is already in the box. StartSearch()
+                // assigns the next version when the debounced query actually runs.
+                _searchVersion++;
                 UpdateQueryChrome();
                 HideError();
                 ScheduleSearch();
@@ -1259,7 +1265,7 @@ namespace CtrlTNav.UI.Internal
                 // Ignore.
             }
 
-            if (state == IndexState.Building || state == IndexState.NotStarted)
+            if (state == IndexState.Building)
             {
                 if (_emptyGlyph != null)
                 {
@@ -1267,6 +1273,32 @@ namespace CtrlTNav.UI.Internal
                 }
 
                 SetEmptyText("Indexing your solution\u2026", BuildIndexingDetail());
+                return;
+            }
+
+            if (state == IndexState.NotStarted)
+            {
+                if (_emptyGlyph != null)
+                {
+                    _emptyGlyph.Text = "\uE721";
+                }
+
+                SetEmptyText(
+                    "The index is not ready",
+                    "Open a C/C++ solution and wait for background indexing, or enable indexing in Tools > Options > Ctrl+T Navigator.");
+                return;
+            }
+
+            if (state == IndexState.Failed)
+            {
+                if (_emptyGlyph != null)
+                {
+                    _emptyGlyph.Text = "\uEA39";
+                }
+
+                SetEmptyText(
+                    "Could not build the C/C++ index",
+                    "See %LOCALAPPDATA%\\CtrlTNav\\ctrltnav.log for details, then reopen the solution to retry.");
                 return;
             }
 
@@ -1316,10 +1348,10 @@ namespace CtrlTNav.UI.Internal
                     int percent = (int)((progress.FilesProcessed * 100.0) / progress.FilesTotal);
                     return "Indexed " + progress.FilesProcessed.ToString("N0", CultureInfo.InvariantCulture) +
                            " of " + progress.FilesTotal.ToString("N0", CultureInfo.InvariantCulture) +
-                           " files (" + percent + "%). Results appear as files are parsed.";
+                           " files (" + percent + "%). Results appear when indexing finishes.";
                 }
 
-                return "Results appear as soon as the first files are parsed.";
+                return "Results appear when indexing finishes.";
             }
             catch (Exception)
             {
@@ -1389,7 +1421,7 @@ namespace CtrlTNav.UI.Internal
             try
             {
                 IndexState state = _searchService.IndexState;
-                building = state == IndexState.Building || state == IndexState.NotStarted;
+                building = state == IndexState.Building;
             }
             catch (Exception)
             {

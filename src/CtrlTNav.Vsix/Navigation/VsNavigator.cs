@@ -78,6 +78,7 @@ namespace CtrlTNav.Vsix.Navigation
 
         private bool NavigateOnMainThread(NavigationItem item, out string? errorMessage)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             errorMessage = null;
 
             if (string.IsNullOrWhiteSpace(item.FilePath))

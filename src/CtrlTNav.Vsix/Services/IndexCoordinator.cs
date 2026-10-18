@@ -45,6 +45,7 @@ namespace CtrlTNav.Vsix.Services
         private readonly object _gate = new object();
         private readonly Dictionary<string, SourceFileInfo> _trackedFiles = new Dictionary<string, SourceFileInfo>(StringComparer.OrdinalIgnoreCase);
         private readonly ConcurrentDictionary<string, DateTime> _pendingFileChanges = new ConcurrentDictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, byte> _createdFilePaths = new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
 
         private CancellationTokenSource? _buildCancellation;
         private FileSystemWatcher? _watcher;
@@ -57,8 +58,8 @@ namespace CtrlTNav.Vsix.Services
         private bool _disposed;
         private int _buildInProgress;
         private int _rebuildRequested;
-        private int _lastStatusTick;
-        private string? _solutionPath;
+        private int _lastStatusTick = Environment.TickCount;
+        private volatile string? _solutionPath;
         private string _pendingRebuildReason = "solution opened";
 
         internal IndexCoordinator(
@@ -164,6 +165,7 @@ namespace CtrlTNav.Vsix.Services
             {
                 _log.Info("Solution closed; clearing the index.");
                 CancelBuild();
+                StopRebuildTimer();
                 StopWatcher();
                 _solutionPath = null;
 
@@ -173,6 +175,7 @@ namespace CtrlTNav.Vsix.Services
                 }
 
                 _pendingFileChanges.Clear();
+                _createdFilePaths.Clear();
                 try
                 {
                     _index.Clear();
@@ -325,6 +328,16 @@ namespace CtrlTNav.Vsix.Services
             try
             {
                 StopWatcher();
+
+                if (string.IsNullOrEmpty(_solutionPath))
+                {
+                    // A rebuild scheduled before the solution was closed must not publish content
+                    // for a solution that is no longer open.
+                    _log.Info("Skipping index build ('" + reason + "'): no solution is open.");
+                    _package.SetStatusProgress(false, CtrlTNavConstants.ProductName + ": no solution open");
+                    return;
+                }
+
                 CtrlTNavOptions options = _optionsProvider.Current;
                 _package.SetStatusProgress(true, CtrlTNavConstants.ProductName + ": scanning solution files...", 0, 0);
 
@@ -338,17 +351,18 @@ namespace CtrlTNav.Vsix.Services
                 }
 
                 _log.Info("Starting index build over " + files.Count + " files ('" + reason + "').");
-                if (files.Count > 0)
-                {
-                    _package.SetStatusProgress(true, CtrlTNavConstants.ProductName + ": indexing " + files.Count + " files...", 0, (uint)files.Count);
-                    await _index.BuildAsync(files, token).ConfigureAwait(false);
-                }
-                else
-                {
-                    _index.Clear();
-                }
+                _package.SetStatusProgress(true, CtrlTNavConstants.ProductName + ": indexing " + files.Count + " files...", 0, (uint)files.Count);
+
+                // BuildAsync(empty) transitions the index to Ready with zero items; calling Clear()
+                // here would leave it in NotStarted forever, so the popup would look like it is
+                // still indexing a solution that contains no C/C++ files.
+                await _index.BuildAsync(files, token).ConfigureAwait(false);
 
                 token.ThrowIfCancellationRequested();
+                if (_disposed)
+                {
+                    return;
+                }
 
                 lock (_gate)
                 {
@@ -725,6 +739,30 @@ namespace CtrlTNav.Vsix.Services
             }
         }
 
+        private void StopRebuildTimer()
+        {
+            Timer? timer;
+            lock (_gate)
+            {
+                timer = _rebuildTimer;
+                _rebuildTimer = null;
+            }
+
+            if (timer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                timer.Dispose();
+            }
+            catch (Exception ex)
+            {
+                _log.Warn("Could not dispose the rebuild timer: " + ex.Message);
+            }
+        }
+
         private void StopWatcher()
         {
             FileSystemWatcher? watcher;
@@ -775,7 +813,7 @@ namespace CtrlTNav.Vsix.Services
 
         private void OnWatchedFileCreated(object sender, FileSystemEventArgs e)
         {
-            EnqueueWatchedPath(e.FullPath);
+            EnqueueWatchedPath(e.FullPath, created: true);
         }
 
         private void OnWatchedFileDeleted(object sender, FileSystemEventArgs e)
@@ -786,7 +824,7 @@ namespace CtrlTNav.Vsix.Services
         private void OnWatchedFileRenamed(object sender, RenamedEventArgs e)
         {
             EnqueueWatchedPath(e.OldFullPath);
-            EnqueueWatchedPath(e.FullPath);
+            EnqueueWatchedPath(e.FullPath, created: true);
         }
 
         private void OnWatcherError(object sender, ErrorEventArgs e)
@@ -795,7 +833,7 @@ namespace CtrlTNav.Vsix.Services
             ScheduleRebuild("watcher overflow", initial: false);
         }
 
-        private void EnqueueWatchedPath(string? path)
+        private void EnqueueWatchedPath(string? path, bool created = false)
         {
             if (_disposed || string.IsNullOrEmpty(path) || !IsPotentiallyRelevant(path!))
             {
@@ -805,6 +843,11 @@ namespace CtrlTNav.Vsix.Services
             try
             {
                 _pendingFileChanges[path!] = DateTime.UtcNow;
+                if (created)
+                {
+                    _createdFilePaths[path!] = 0;
+                }
+
                 Timer? timer;
                 lock (_gate)
                 {
@@ -851,15 +894,17 @@ namespace CtrlTNav.Vsix.Services
 
             var paths = new List<string>(_pendingFileChanges.Keys);
             _pendingFileChanges.Clear();
+            var createdPaths = new HashSet<string>(_createdFilePaths.Keys, StringComparer.OrdinalIgnoreCase);
+            _createdFilePaths.Clear();
             if (paths.Count == 0)
             {
                 return;
             }
 
-            _ = Task.Run(() => ProcessWatchedChangesAsync(paths));
+            _ = Task.Run(() => ProcessWatchedChangesAsync(paths, createdPaths));
         }
 
-        private async Task ProcessWatchedChangesAsync(List<string> paths)
+        private async Task ProcessWatchedChangesAsync(List<string> paths, HashSet<string> createdPaths)
         {
             foreach (string path in paths)
             {
@@ -870,7 +915,7 @@ namespace CtrlTNav.Vsix.Services
 
                 try
                 {
-                    await ProcessWatchedChangeAsync(path).ConfigureAwait(false);
+                    await ProcessWatchedChangeAsync(path, createdPaths.Contains(path)).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -883,7 +928,7 @@ namespace CtrlTNav.Vsix.Services
             }
         }
 
-        private async Task ProcessWatchedChangeAsync(string path)
+        private async Task ProcessWatchedChangeAsync(string path, bool created)
         {
             SourceFileInfo? info;
             lock (_gate)
@@ -903,8 +948,15 @@ namespace CtrlTNav.Vsix.Services
 
             if (info == null)
             {
-                // A new file that appeared after the last enumeration cannot be added incrementally
-                // because its owning project is unknown; the next rebuild (or save) picks it up.
+                // A new project file cannot be added with UpdateFileAsync because its owning project
+                // metadata is unknown (and saving it produces no OnAfterSave entry either), so a
+                // debounced full rebuild is required.
+                if (created && exists)
+                {
+                    _log.Info("A new C/C++ file was detected ('" + path + "'); scheduling a full rebuild.");
+                    ScheduleRebuild("new file detected", initial: false);
+                }
+
                 return;
             }
 
@@ -958,6 +1010,20 @@ namespace CtrlTNav.Vsix.Services
                     return;
                 }
 
+                // Indexing may have been disabled while the solution opened, so the cached solution
+                // path can still be null here. Refresh it before scheduling the rebuild.
+                string? solutionPath = GetSolutionPathOnUiThread();
+                if (!string.IsNullOrEmpty(solutionPath))
+                {
+                    _solutionPath = solutionPath;
+                }
+
+                if (string.IsNullOrEmpty(_solutionPath))
+                {
+                    _log.Info("Indexing options changed, but no solution is open; nothing to rebuild.");
+                    return;
+                }
+
                 _log.Info("Indexing-related options changed; scheduling a rebuild.");
                 ScheduleRebuild("options changed", initial: false);
             }
@@ -1004,29 +1070,12 @@ namespace CtrlTNav.Vsix.Services
             }
 
             CancelBuild();
+            StopRebuildTimer();
             StopWatcher();
             UnadviseRunningDocumentTable();
 
-            Timer? rebuildTimer;
-            lock (_gate)
-            {
-                rebuildTimer = _rebuildTimer;
-                _rebuildTimer = null;
-            }
-
-            if (rebuildTimer != null)
-            {
-                try
-                {
-                    rebuildTimer.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    _log.Warn("Could not dispose the rebuild timer: " + ex.Message);
-                }
-            }
-
             _pendingFileChanges.Clear();
+            _createdFilePaths.Clear();
             _log.Info("Index coordinator disposed.");
         }
     }

@@ -413,6 +413,7 @@ namespace CtrlTNav.Vsix
 
         private IVsStatusbar? GetStatusBar()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             if (_statusBar != null)
             {
                 return _statusBar;
@@ -477,6 +478,13 @@ namespace CtrlTNav.Vsix
                 if (e == null || (!e.DisplayChanged && !e.RecentUsageChanged))
                 {
                     return;
+                }
+
+                if (e.RecentUsageChanged)
+                {
+                    // Reconfigures the tracker when the capacity changed; the enable flag is read on
+                    // every query/recording and needs no reconfiguration.
+                    _searchService?.UpdateOptions(e.Current);
                 }
 
                 RefreshWindowAsync();

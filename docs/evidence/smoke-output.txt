@@ -1,43 +1,54 @@
 Directory: C:\Users\caimc\Desktop\VSPlugin\tests\CtrlTNav.Tests\TestData\indexing
-Discovered 7 candidate file(s) in 16 ms
+Discovered 7 candidate file(s) in 15 ms
 [info] Ctrl+T Navigator: indexed 7 files, 119 items.
-Indexed 7 file(s), 119 item(s) in 26 ms
+Indexed 7 file(s), 119 item(s) in 24 ms
 Search index: 119 item(s)
 
-Query "t " -> 21 result(s), 2.43 ms
+Query "t " -> 21 result(s), 2.12 ms
    1. [    0] None        C  AfterIf0                                   broken.cpp:38
    2. [    0] None        C  navsample::Container                       sample.h:92
    3. [    0] None        C  MessyWidget                                messy_thirdparty.h:28
    4. [    0] None        C  Survives                                   broken.cpp:9
    5. [    0] None        C  navsample::Widget                          sample.h:58
 
-Query "f " -> 7 result(s), 0.07 ms
+Query "f " -> 7 result(s), 0.05 ms
    1. [    0] None        F  C:\Users\caimc\Desktop\VSPlugin\tests\C…   a.cpp:1
    2. [    0] None        F  C:\Users\caimc\Desktop\VSPlugin\tests\C…   b.hpp:1
    3. [    0] None        F  C:\Users\caimc\Desktop\VSPlugin\tests\C…   broken.cpp:1
    4. [    0] None        F  C:\Users\caimc\Desktop\VSPlugin\tests\C…   c.cc:1
    5. [    0] None        F  C:\Users\caimc\Desktop\VSPlugin\tests\C…   messy_thirdparty.h:1
 
-Query "# " -> 112 result(s), 0.09 ms
+Query "# " -> 112 result(s), 0.08 ms
    1. [    0] None        N  broken_ns                                  broken.cpp:30
    2. [    0] None        N  navsample::detail                          sample.h:108
    3. [    0] None        N  navsample                                  sample.cpp:7
    4. [    0] None        N  navsample                                  sample.h:12
    5. [    0] None        C  AfterIf0                                   broken.cpp:38
 
-Query "point" -> 20 result(s), 2.91 ms
-   1. [ 1240] Exact       C  navsample::Point::Point                    sample.cpp:14
-   2. [ 1240] Exact       C  navsample::Point::Point                    sample.h:51
-   3. [ 1240] Exact       D  navsample::Point::Point                    sample.cpp:20
-   4. [ 1240] Exact       D  navsample::Point::Point                    sample.h:52
-   5. [ 1240] Exact       S  navsample::Point                           sample.h:43
+Query "Inside" -> 1 result(s), 1.93 ms
+   1. [ 1240] Exact       M  Survives::Inside                           broken.cpp:12
 
-Query "widget" -> 22 result(s), 0.67 ms
-   1. [ 1240] Exact       C  navsample::Widget                          sample.h:58
-   2. [ 1240] Exact       C  navsample::Widget::Widget                  sample.h:61
-   3. [ 1240] Exact       D  navsample::Widget::Widget                  sample.h:62
-   4. [  510] Camel       C  MessyWidget                                messy_thirdparty.h:28
-   5. [  510] Camel       C  MessyWidget::MessyWidget                   messy_thirdparty.h:31
+Query "ValidF" -> 1 result(s), 0.06 ms
+   1. [  686] Prefix      M  ValidFunction                              broken.cpp:18
+
+Query "Visibl" -> 2 result(s), 0.73 ms
+   1. [  725] Prefix      M  AfterIf0::Visible                          broken.cpp:41
+   2. [  685] Prefix      V  navsample::Widget::Visible                 sample.h:73
+
+Query "Trunca" -> 1 result(s), 0.02 ms
+   1. [  675] Prefix      M  TruncatedFunction                          broken.cpp:46
+
+Query "MessyA" -> 16 result(s), 0.88 ms
+   1. [  677] Prefix      M  MessyApiFunction                           messy_thirdparty.h:20
+   2. [  181] FullName    V  MessyWidget::anonymousMember::nestedX      messy_thirdparty.h:48
+   3. [  181] FullName    V  MessyWidget::anonymousMember::nestedY      messy_thirdparty.h:49
+   4. [  174] FullName    OP MessyWidget::operator=                     messy_thirdparty.h:36
+   5. [  174] FullName    OP MessyWidget::operator bool                 messy_thirdparty.h:35
+
+Query "Comput" -> 3 result(s), 0.02 ms
+   1. [  725] Prefix      M  MessyWidget::Compute                       messy_thirdparty.h:34
+   2. [  690] Prefix      M  navsample::Widget::ComputeWidth            sample.cpp:52
+   3. [  690] Prefix      M  navsample::Widget::ComputeWidth            sample.h:65
 
 === Benchmark ===
   "get": 0.03 ms/query over 119 items
@@ -46,8 +57,8 @@ Query "widget" -> 22 result(s), 0.67 ms
   "vec": 0.02 ms/query over 119 items
   "config": 0.01 ms/query over 119 items
   "render": 0.02 ms/query over 119 items
-  "test": 0.04 ms/query over 119 items
-  "init": 0.04 ms/query over 119 items
+  "test": 0.03 ms/query over 119 items
+  "init": 0.03 ms/query over 119 items
   "f ": 0.01 ms/query over 119 items
 
 === Recent usage weighting demo ===

@@ -293,6 +293,32 @@ namespace CtrlTNav.Tests.Matching
         }
 
         [Fact]
+        public void ScatteredPathSubsequence_IsNotReturnedAsFileResult()
+        {
+            // Every letter of "inside" appears in this path in order, but only as a random scatter
+            // (the within-class quality is zero). Such hits are noise and must not be listed.
+            NavigationItem file = MatchingTestFactory.FileItem(
+                @"C:\solution\src\third_party\include\broken.cpp");
+            SearchIndex index = MatchingTestFactory.CreateIndex(file);
+
+            Assert.Empty(index.Search(MatchingTestFactory.Query("inside"), MatchingTestFactory.NewOptions()));
+        }
+
+        [Fact]
+        public void ScatteredQualifiedNameSubsequence_IsNotReturnedAsFullNameMatch()
+        {
+            NavigationItem item = MatchingTestFactory.Symbol(
+                "CreateDefault",
+                ItemKind.Method,
+                @"C:\p\a.h",
+                1,
+                fullName: "navsample::Widget::CreateDefault");
+            SearchIndex index = MatchingTestFactory.CreateIndex(item);
+
+            Assert.Empty(index.Search(MatchingTestFactory.Query("vali"), MatchingTestFactory.NewOptions()));
+        }
+
+        [Fact]
         public void HighlightRanges_AreRelativeToItemName()
         {
             NavigationItem item = MatchingTestFactory.Symbol("getUserName", ItemKind.Method, @"C:\p\a.h", 1);

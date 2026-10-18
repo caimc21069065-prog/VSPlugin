@@ -1,6 +1,9 @@
 namespace CtrlTNav.Core.Model
 {
-    /// <summary>Quality of a match, ordered from weakest to strongest.</summary>
+    /// <summary>
+    /// Quality of a match. Exact, Prefix, Camel and Subsequence are ordered from weakest to strongest;
+    /// <see cref="FullName"/> is a separate class for qualified-name-only hits.
+    /// </summary>
     public enum MatchKind
     {
         None = 0,

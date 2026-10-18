@@ -51,7 +51,7 @@ namespace CtrlTNav.Indexing
             stack.Push(new KeyValuePair<string, int>(root, 0));
             int directoryCount = 0;
 
-            while (stack.Count > 0)
+            while (stack.Count > 0 && result.Count < MaxFiles)
             {
                 KeyValuePair<string, int> current = stack.Pop();
                 string directory = current.Key;

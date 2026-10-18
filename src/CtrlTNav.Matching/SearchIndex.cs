@@ -181,7 +181,8 @@ namespace CtrlTNav.Matching
                 _items.Clear();
                 _byIdentity.Clear();
                 _byFile.Clear();
-                _snapshotDirty = true;
+                _snapshot = EmptyItems;
+                _snapshotDirty = false;
             }
         }
 
@@ -422,8 +423,13 @@ namespace CtrlTNav.Matching
                 {
                     if (!maskUsable || ((entry.SecondaryMask & queryMask) == queryMask))
                     {
-                        if (FuzzyMatcher.TryMatchSecondary(entry.SecondaryText, lowerQuery, out int secondaryQuality))
+                        if (FuzzyMatcher.TryMatchSecondary(entry.SecondaryText, lowerQuery, out int secondaryQuality)
+                            && secondaryQuality > 0)
                         {
+                            // A zero-quality hit means the query characters are scattered across a
+                            // long qualified name/path without any boundary or contiguous run. Those
+                            // are effectively random (most absolute paths contain every letter), so
+                            // they are not surfaced as results.
                             matchKind = MatchKind.FullName;
                             quality = secondaryQuality;
                             matched = true;

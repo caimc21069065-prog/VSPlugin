@@ -7,6 +7,7 @@ using CtrlTNav.Core.Options;
 using CtrlTNav.Indexing;
 using CtrlTNav.Vsix.Options;
 using EnvDTE;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 
 namespace CtrlTNav.Vsix.Services
@@ -91,6 +92,7 @@ namespace CtrlTNav.Vsix.Services
 
         private List<Candidate> EnumerateCandidatesOnMainThread(CtrlTNavOptions options)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             var list = new List<Candidate>(1024);
             DTE? dte = VsDteUtilities.GetDte(_package);
             SolutionPath = VsDteUtilities.GetSolutionPath(dte);
@@ -676,7 +678,12 @@ namespace CtrlTNav.Vsix.Services
         {
             try
             {
-                return string.Equals(Path.GetExtension(path), ".c", StringComparison.OrdinalIgnoreCase) ? "c" : "cpp";
+                string extension = Path.GetExtension(path);
+                return string.Equals(extension, ".c", StringComparison.OrdinalIgnoreCase) ||
+                       string.Equals(extension, ".m", StringComparison.OrdinalIgnoreCase) ||
+                       string.Equals(extension, ".mm", StringComparison.OrdinalIgnoreCase)
+                    ? "c"
+                    : "cpp";
             }
             catch
             {

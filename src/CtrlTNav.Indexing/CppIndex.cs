@@ -219,10 +219,32 @@ namespace CtrlTNav.Indexing
 
                 NavigationItem[] snapshot;
                 int itemCount;
+                bool installed;
                 lock (_sync)
                 {
-                    _files = newFiles;
-                    snapshot = RebuildSnapshotLocked(out int fileCount, out itemCount);
+                    // Re-check under the writer lock: a cancellation or a concurrent Clear()/Dispose()
+                    // may have happened after the first check. Installing here would resurrect a
+                    // solution that was closed (or a disposed index).
+                    installed = !_disposed && !cancellationToken.IsCancellationRequested;
+                    if (installed)
+                    {
+                        _files = newFiles;
+                        snapshot = RebuildSnapshotLocked(out _, out itemCount);
+                    }
+                    else
+                    {
+                        snapshot = EmptyItems;
+                        itemCount = 0;
+                    }
+                }
+
+                if (!installed)
+                {
+                    SetState(fallbackState);
+                    SetProgress(new IndexProgress(FileCount, FileCount, ItemCount, null), false);
+                    RaiseProgress();
+                    _log.Info("Ctrl+T Navigator: index build discarded (cancelled or index disposed).");
+                    return;
                 }
 
                 SetState(IndexState.Ready);
@@ -297,7 +319,7 @@ namespace CtrlTNav.Indexing
                 int itemCount;
                 lock (_sync)
                 {
-                    if (!_files.ContainsKey(key))
+                    if (!_files.ContainsKey(key) || _disposed || cancellationToken.IsCancellationRequested)
                     {
                         return;
                     }
@@ -377,7 +399,7 @@ namespace CtrlTNav.Indexing
 
         public IReadOnlyList<NavigationItem> Snapshot()
         {
-            return _snapshot;
+            return Volatile.Read(ref _snapshot);
         }
 
         public void Dispose()
@@ -391,7 +413,7 @@ namespace CtrlTNav.Indexing
             lock (_sync)
             {
                 _files.Clear();
-                _snapshot = EmptyItems;
+                Volatile.Write(ref _snapshot, EmptyItems);
                 Volatile.Write(ref _fileCount, 0);
                 Volatile.Write(ref _itemCount, 0);
                 _progress = IndexProgress.Empty;
@@ -610,7 +632,7 @@ namespace CtrlTNav.Indexing
                 }
             }
 
-            _snapshot = snapshot;
+            Volatile.Write(ref _snapshot, snapshot);
             itemCount = total;
             Volatile.Write(ref _fileCount, fileCount);
             Volatile.Write(ref _itemCount, total);
@@ -631,6 +653,11 @@ namespace CtrlTNav.Indexing
 
         private void SetState(IndexState state)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             Volatile.Write(ref _state, (int)state);
         }
 

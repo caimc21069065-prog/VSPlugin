@@ -30,7 +30,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\pack-vsix.ps1 -Configurati
 On a machine with PowerShell 7 installed, `pwsh -File .\build.ps1` works the same way; `build.ps1 -Pack`
 automatically calls `pwsh` when available and falls back to `powershell.exe` otherwise.
 
-The verified release build in this repository produced **0 errors** and **243/243 passing tests**; see
+The verified release build in this repository produced **0 errors** and **252/252 passing tests**; see
 `docs/evidence/build-release.log`, `docs/evidence/test-results.log`, and `docs/evidence/pack-release.log`.
 
 ## What gets built

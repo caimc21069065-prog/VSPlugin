@@ -79,7 +79,7 @@ namespace CtrlTNav.Vsix.Options
 
         [Category(IndexingCategory)]
         [DisplayName("Exclude patterns")]
-        [Description("Semicolon separated glob patterns for files and directories that are never indexed, for example **/build/** or **/third_party/**.")]
+        [Description("Semicolon separated glob patterns for files and directories that are never indexed, for example **/build/** or **/third_party/**. Built-in defaults for build, bin, obj, .git and .vs always apply in addition to these patterns.")]
         [DefaultValue(CtrlTNavOptions.DefaultExcludePatterns)]
         public string ExcludePatterns { get; set; } = CtrlTNavOptions.DefaultExcludePatterns;
 

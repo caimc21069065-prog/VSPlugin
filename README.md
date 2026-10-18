@@ -4,7 +4,7 @@ A free, fast **Go to Everything** navigation popup for C/C++ in Visual Studio 20
 ReSharper C++'s `Ctrl+T`: one search box for types, functions, methods, variables, macros and files,
 with fuzzy matching, smart ranking and recently-used weighting.
 
-> Status: implementation complete, **243/243 unit tests passing**, release VSIX packaged at
+> Status: implementation complete and reviewed, **252/252 unit tests passing**, release VSIX packaged at
 > `artifacts/CtrlTNav.GoToEverything.vsix`. The engine, indexing, UI rendering and VSIX container are
 > verified on this machine; the in-IDE checks (Ctrl+T key binding, navigation caret, options toggles)
 > still require a machine with Visual Studio installed — see `docs/ACCEPTANCE.md` for the evidence and
@@ -17,6 +17,8 @@ with fuzzy matching, smart ranking and recently-used weighting.
 * **Unified search** across C/C++ files discovered from the solution (`.sln` / `.vcxproj`):
   classes, structs, enums, namespaces, functions, methods, constructors/destructors/operators, fields,
   globals, typedefs/aliases, concepts and `#define` macros.
+* **C++20 aware**: `requires`-clauses on classes and functions are skipped correctly instead of hiding
+  the declaration they constrain, and off-by-default modules/imports are tolerated.
 * **Fuzzy matching** with the ranking order ReSharper users expect:
   exact match → prefix → camel-case/underscore tokens → subsequence, plus recent-usage and
   current-project boosts.

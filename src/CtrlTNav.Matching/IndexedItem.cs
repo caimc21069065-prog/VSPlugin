@@ -29,7 +29,8 @@ namespace CtrlTNav.Matching
             NameMask = FuzzyMatcher.ComputeAsciiMask(LowerName);
 
             // Secondary text is the qualified name for symbols, or the full path for file entries, so that
-            // typing path fragments (e.g. "src main") can still find a file whose simple name does not match.
+            // typing a qualified or path fragment (e.g. "stdvec" or "src\\widget") can still find an item
+            // whose simple name does not match.
             string secondary = item.FullName ?? string.Empty;
             if (secondary.Length == 0 && IsFile)
             {

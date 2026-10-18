@@ -233,6 +233,21 @@ namespace CtrlTNav.Tests.Indexing
         }
 
         [Fact]
+        public async Task DefaultOptionsIndexCudaHeadersAndTemplateImplementationFiles()
+        {
+            using var temp = new TempDirectory();
+            string cudaHeader = temp.Write("kernels.cuh", "class CudaKernel {};\n");
+            string templateImplementation = temp.Write("container.tcc", "int TemplateHelper();\n");
+            using var index = new CppIndex();
+
+            await index.BuildAsync(new[] { Source(cudaHeader), Source(templateImplementation) });
+
+            Assert.Equal(2, index.FileCount);
+            Assert.NotNull(IndexingTestData.Find(index.Snapshot(), "CudaKernel", ItemKind.Class));
+            Assert.NotNull(IndexingTestData.Find(index.Snapshot(), "TemplateHelper", ItemKind.Function));
+        }
+
+        [Fact]
         public async Task BuildSkipsMissingUnsupportedOversizedAndExcludedFiles()
         {
             using var temp = new TempDirectory();

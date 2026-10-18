@@ -29,7 +29,7 @@
               Publisher="CtrlTNav" />
     <DisplayName>Ctrl+T Navigator for C++</DisplayName>
     <Description xml:space="preserve">ReSharper-style Go to Everything for Visual Studio C/C++ development. Press Ctrl+T (or Ctrl+,) to search types, symbols, macros and files with fuzzy matching, smart ranking and recent-usage weighting.</Description>
-    <MoreInfo>https://github.com/ctrltnav/CtrlTNav</MoreInfo>
+    <MoreInfo>https://github.com/caimc21069065-prog/VSPlugin</MoreInfo>
     <License>Resources\license.txt</License>
     <GettingStartedGuide>Resources\getting-started.txt</GettingStartedGuide>
     <Icon>Resources\logo.png</Icon>

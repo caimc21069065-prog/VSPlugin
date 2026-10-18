@@ -83,11 +83,22 @@ namespace CtrlTNav.UI
                 // A misbehaving service must not prevent the popup from being created.
             }
 
-            _window = new SearchWindow(_view);
-            _window.Deactivated += OnWindowDeactivated;
-            _window.PreviewKeyDown += OnWindowPreviewKeyDown;
-            _window.IsVisibleChanged += OnWindowIsVisibleChanged;
-            _window.Closed += OnWindowClosed;
+            CreateWindow();
+        }
+
+        private void CreateWindow()
+        {
+            if (_view == null)
+            {
+                return;
+            }
+
+            var window = new SearchWindow(_view);
+            window.Deactivated += OnWindowDeactivated;
+            window.PreviewKeyDown += OnWindowPreviewKeyDown;
+            window.IsVisibleChanged += OnWindowIsVisibleChanged;
+            window.Closed += OnWindowClosed;
+            _window = window;
         }
 
         /// <summary>True while the popup is displayed. Safe to read from any thread.</summary>
@@ -120,23 +131,36 @@ namespace CtrlTNav.UI
         {
             RunOnDispatcher(() =>
             {
-                if (_window == null || _view == null)
+                if (_view == null)
+                {
+                    return;
+                }
+
+                if (_window == null)
+                {
+                    // The user can close the popup with Alt+F4; the window cannot be shown again
+                    // after Closed, so recreate it around the (still valid) view.
+                    CreateWindow();
+                }
+
+                SearchWindow? window = _window;
+                if (window == null)
                 {
                     return;
                 }
 
                 _view.SetQueryText(presetText);
                 _deactivateGraceUntilTick = Environment.TickCount + DeactivateGraceMilliseconds;
-                _window.PositionNearTop();
+                window.PositionNearTop();
 
-                if (!_window.IsVisible)
+                if (!window.IsVisible)
                 {
-                    _window.AttachToHostWindow();
-                    _window.Show();
+                    window.AttachToHostWindow();
+                    window.Show();
                 }
                 else
                 {
-                    _window.Activate();
+                    window.Activate();
                 }
 
                 _isVisible = true;
@@ -408,13 +432,40 @@ namespace CtrlTNav.UI
 
         private void OnWindowClosed(object? sender, EventArgs e)
         {
+            _isVisible = false;
             if (_disposed)
             {
                 return;
             }
 
-            // The window can be closed by WPF shutdown; drop our handles so a later show recreates nothing stale.
-            _isVisible = false;
+            // The window was closed by the user (Alt+F4) or by the environment. Keep the view and
+            // rebuild the window lazily on the next show.
+            _view?.OnHidden();
+            SearchWindow? closedWindow = sender as SearchWindow ?? _window;
+            if (closedWindow == null)
+            {
+                return;
+            }
+
+            try
+            {
+                closedWindow.Deactivated -= OnWindowDeactivated;
+                closedWindow.PreviewKeyDown -= OnWindowPreviewKeyDown;
+                closedWindow.IsVisibleChanged -= OnWindowIsVisibleChanged;
+                closedWindow.Closed -= OnWindowClosed;
+
+                // Detach the view's visual tree so the same root can be hosted by a new window.
+                closedWindow.Content = null;
+            }
+            catch (Exception)
+            {
+                // Ignore teardown races.
+            }
+
+            if (ReferenceEquals(_window, closedWindow))
+            {
+                _window = null;
+            }
         }
     }
 }

@@ -139,9 +139,11 @@ Ctrl+T / Ctrl+, key bindings are not registered.
   symbol/file counts).
 * Document save: incremental `ICppIndex.UpdateFileAsync` for tracked files.
 * External changes: `FileSystemWatcher` with an 800 ms debounce; modified/deleted tracked files are
-  re-indexed/removed, watcher overflows schedule a full rebuild.
-* Options change: index-scope changes trigger a debounced rebuild; display/recent-usage changes refresh
-  the pre-created window.
+  re-indexed/removed, newly created C/C++ files schedule a full rebuild (their project metadata is not
+  known incrementally), and watcher overflows schedule a full rebuild.
+* Options change: index-scope changes trigger a debounced rebuild (the solution path is refreshed first
+  when indexing had been disabled); recent-usage capacity changes reconfigure the tracker; display changes
+  refresh the pre-created window.
 * Theme change (`VSColorTheme.ThemeChanged`): the popup theme is rebuilt from `EnvironmentColors` and
   applied live (dark/light/blue themes).
 
@@ -174,6 +176,17 @@ These need a real devenv instance (no Visual Studio is installed in the build en
    `ProjectItems`); it can take a moment on first load. The status bar shows "scanning solution files...".
 5. Logs: `%LOCALAPPDATA%\CtrlTNav\ctrltnav.log`; package load problems also appear in the
    `devenv.exe /log` activity log with source `Ctrl+T Navigator for C++`.
+
+## 7.1 Post-review hardening (2026-10-18)
+
+* The final index-state notification is no longer suppressed by the status throttle, so a popup opened
+  during a fast build refreshes as soon as the index is ready.
+* `VsSearchService.UpdateOptions` is now wired to the options page and saves pending MRU entries before
+  replacing the tracker.
+* A closed popup (Alt+F4) is recreated on the next show; the view's visual tree is detached from the
+  closed window first.
+* An empty solution reaches `Ready` with zero items instead of remaining in `NotStarted`.
+* A debounced rebuild left over from a closed solution is discarded (retained solution path + timer stop).
 
 ## 8. Compatibility fixes applied during verification
 

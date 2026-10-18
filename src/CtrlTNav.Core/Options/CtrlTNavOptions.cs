@@ -64,7 +64,7 @@ namespace CtrlTNav.Core.Options
 
         public const string DefaultExcludePatterns = "**/build/**;**/out/**;**/bin/**;**/obj/**;**/.git/**;**/.vs/**;**/Generated/**;**/*.g.cs";
 
-        public const string DefaultSourceExtensions = ".h;.hpp;.hxx;.hh;.h++;.inl;.ipp;.tpp;.c;.cc;.cpp;.cxx;.c++;.m;.mm;.ixx;.cppm";
+        public const string DefaultSourceExtensions = ".h;.hpp;.hxx;.hh;.h++;.inl;.ipp;.tpp;.tcc;.cuh;.c;.cc;.cpp;.cxx;.c++;.m;.mm;.ixx;.cppm";
 
         /// <summary>Clamps values into supported ranges.</summary>
         public CtrlTNavOptions Normalize()

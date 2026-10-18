@@ -21,11 +21,11 @@ Legend: ✅ verified with evidence · 🟡 partially verified / requires VS for 
 
 | Check | Result |
 |-------|--------|
-| Release build (`build.ps1 -Configuration Release`) | **0 errors**, 49 warnings (VS threading analyzers + nullable advisories), log in `docs/evidence/build-release.log` |
-| xUnit tests | **243/243 passed**, 0 failed, 0 skipped (`docs/evidence/test-results.log`) |
-| Smoke run (real C++ test data) | 7 files, 119 items indexed in 26 ms; `t ` → 21 types, `f ` → 7 files, `# ` → 112 symbols; query latency 0.01–0.04 ms (`docs/evidence/smoke-output.txt`) |
+| Release build (`build.ps1 -Configuration Release`) | **0 errors**, 48 warnings (VS threading analyzers + nullable advisories), log in `docs/evidence/build-release.log` |
+| xUnit tests | **252/252 passed**, 0 failed, 0 skipped (`docs/evidence/test-results.log`) |
+| Smoke run (real C++ test data) | 7 files, 119 items indexed in 24 ms; `t ` → 21 types, `f ` → 7 files, `# ` → 112 symbols; query latency 0.01–0.03 ms (`docs/evidence/smoke-output.txt`) |
 | VSCT command table | 0 errors, 0 warnings; `Menus.ctmenu` merged and present in the package assembly |
-| VSIX container | 10 entries, 130.5 KB, SHA-256 `10E717750A287581C2DDF91652BAEE106F4E893F7B691C8B0A199D144DEC4B52`; pkgdef contains `Packages`, `AutoLoadPackages`, `BindingPaths`, `Menus` and `ToolsOptionsPages` (`docs/evidence/vsix-contents.txt`) |
+| VSIX container | 10 entries, 132.2 KB (135339 bytes), SHA-256 `69C30FB894A7C9C020EE2DF65E66664D9EC0D406B845792D4733AA5EB3487383`; pkgdef contains `Packages`, `AutoLoadPackages`, `BindingPaths`, `Menus` and `ToolsOptionsPages` (`docs/evidence/vsix-contents.txt`) |
 | Remaining work | Install the VSIX in Visual Studio 2022/2026 and complete the manual checks in the last section |
 
 ## 5.1 Functional acceptance
@@ -82,13 +82,41 @@ The last verification pass fixed the defects that blocked the suite and added co
 * Scanner: excludes are matched relative to the scan root and built-in defaults always apply.
 * `CppIndex` duplicate-position and concurrent-build test assertions made deterministic.
 
+## Follow-up review pass (2026-10-18)
+
+A second source audit found and fixed these defects; the regression tests are part of the 252-test suite:
+
+* **C++20 requires-clauses**: `template<...> requires C<T> class Foo` used to hide `Foo` entirely (it was
+  emitted as a variable), and `class Foo requires C<T>` used the constraint as the type name. Constraint
+  expressions are now skipped properly (`CppRequiresClauseTests`).
+* **Search relevance**: zero-quality qualified-name/path subsequence hits (for example `inside` matching
+  random letters of `C:\...\indexing\broken.cpp`) are no longer returned as `FullName` results.
+* **Index status**: the final "index ready" notification could be swallowed by the 120 ms state throttle,
+  so an open popup did not refresh after a fast build; item changes and terminal progress now always
+  notify. A solution with no C/C++ files now reaches `Ready` (zero items) instead of staying `NotStarted`
+  and showing an endless "Indexing…" state.
+* **Recent-usage capacity**: changing the capacity in the options page now reconfigures the tracker
+  immediately (previously `VsSearchService.UpdateOptions` was never called) and saves pending entries
+  before reloading.
+* **Popup lifecycle**: closing the borderless popup with Alt+F4 made later Ctrl+T presses do nothing; the
+  window is now recreated lazily around the existing view.
+* **Cancellation races**: a build cancelled while it was finalising could re-install content after a
+  solution close; the install is re-checked under the writer lock, snapshots are published with
+  `Volatile`, and a pending rebuild timer is stopped on solution close.
+* **File coverage**: `.tcc` and `.cuh` are part of the default source extensions (they were already
+  header-classified but were not indexed by default).
+* **New files**: creating a C/C++ file after the initial index now schedules a debounced full rebuild
+  (incremental updates cannot know the owning project metadata).
+* **UI freshness**: in-flight searches are invalidated as soon as the query text changes, and the wording
+  no longer claims that results appear while files are still being parsed.
+
 ## Artefacts
 
 | Artefact | Path |
 |----------|------|
-| VSIX package | `artifacts/CtrlTNav.GoToEverything.vsix` (130.5 KB) |
+| VSIX package | `artifacts/CtrlTNav.GoToEverything.vsix` (132.2 KB) |
 | Build log (Release) | `docs/evidence/build-release.log` |
-| Test log (243 passed) | `docs/evidence/test-results.log` |
+| Test log (252 passed) | `docs/evidence/test-results.log` |
 | Smoke output + benchmark | `docs/evidence/smoke-output.txt` |
 | Packaging log (VSCT / mergeCto / CreatePkgDef) | `docs/evidence/pack-release.log` |
 | VSIX content listing + hashes | `docs/evidence/vsix-contents.txt` |
@@ -103,9 +131,11 @@ The last verification pass fixed the defects that blocked the suite and added co
    `Ctrl+T Navigator: <n> symbols from <m> files indexed`.
 3. Press `Ctrl+T`, type `push`, `vec`, or use `t `, `f `, `# `, `m ` prefixes; check the filter badge,
    highlighting, relative path/line and result ordering.
-4. Use ↑/↓/PageUp/PageDown/Home/End, Enter, Esc, Tab, Ctrl+C and double-click.
+4. Use ↑/↓/PageUp/PageDown/Home/End, Enter, Esc, Tab, Ctrl+C and double-click. Close the popup with
+   Alt+F4 and confirm Ctrl+T opens it again.
 5. Save a `.cpp` file and confirm the index updates; modify a file externally and confirm the display
-   refreshes after ~800 ms.
+   refreshes after ~800 ms. Create a new source file and confirm it is indexed after the debounced
+   rebuild.
 6. Toggle **Tools > Options > Ctrl+T Navigator > General > Override Ctrl+T** and confirm native
    `Edit.GoToAll` is restored when off; check `Ctrl+,` with **Use Ctrl+, shortcut** disabled opens
    Tools/Options.
