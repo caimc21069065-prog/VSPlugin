@@ -1,0 +1,89 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>CtrlTNav.Vsix</RootNamespace>
+    <AssemblyName>CtrlTNav.Vsix</AssemblyName>
+    <Description>Visual Studio extension package implementing the Ctrl+T Go to Everything experience for C/C++.</Description>
+
+    <!--
+      Two build flavours are supported:
+
+      * Visual Studio (full MSBuild, MSBuildRuntimeType != Core): the official VSSDK targets imported at the
+        bottom of this file generate the pkgdef, compile the .vsct and produce the .vsix container. F5/debug
+        and "Build > Create VSIX" work exactly like a template-generated extension project.
+
+      * dotnet CLI (MSBuildRuntimeType == Core): MSBuild cannot load the .NET Framework VSSDK build tasks, so
+        packaging is disabled and `pack-vsix.ps1` performs the same steps with the standalone VSSDK tools
+        (vsct.exe, VsixUtil.exe, CreatePkgDef.exe) and zips the container itself.
+    -->
+    <CtrlTNavManualPackaging Condition="'$(CtrlTNavManualPackaging)' == '' and '$(MSBuildRuntimeType)' == 'Core'">true</CtrlTNavManualPackaging>
+    <CtrlTNavManualPackaging Condition="'$(CtrlTNavManualPackaging)' == ''">false</CtrlTNavManualPackaging>
+
+    <GeneratePkgDefFile Condition="'$(CtrlTNavManualPackaging)' != 'true'">true</GeneratePkgDefFile>
+    <IncludeAssemblyInVSIXContainer Condition="'$(CtrlTNavManualPackaging)' != 'true'">true</IncludeAssemblyInVSIXContainer>
+    <CreateVsixContainer Condition="'$(CtrlTNavManualPackaging)' != 'true'">true</CreateVsixContainer>
+    <DeployExtension Condition="'$(CtrlTNavManualPackaging)' != 'true'">false</DeployExtension>
+    <CopyVsixManifestToOutput Condition="'$(CtrlTNavManualPackaging)' != 'true'">true</CopyVsixManifestToOutput>
+    <GenerateVsixManifestFile Condition="'$(CtrlTNavManualPackaging)' != 'true'">true</GenerateVsixManifestFile>
+    <VSIXName>CtrlTNav.GoToEverything</VSIXName>
+    <VsixOutDir>$(MSBuildThisFileDirectory)..\..\artifacts\vsix\</VsixOutDir>
+    <UseCodebase>true</UseCodebase>
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="17.14.40264" />
+    <PackageReference Include="EnvDTE" Version="17.14.40260" />
+    <PackageReference Include="EnvDTE80" Version="17.14.40260" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2142" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CtrlTNav.Core\CtrlTNav.Core.csproj" />
+    <ProjectReference Include="..\CtrlTNav.Matching\CtrlTNav.Matching.csproj" />
+    <ProjectReference Include="..\CtrlTNav.Indexing\CtrlTNav.Indexing.csproj" />
+    <ProjectReference Include="..\CtrlTNav.UI\CtrlTNav.UI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="source.extension.vsixmanifest">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\logo.png">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\license.txt">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\getting-started.txt">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!--
+    Official VSSDK build pipeline: compile the command table, merge the .cto into the package resources,
+    generate the pkgdef and create the VSIX container. Only available with full-framework MSBuild.
+  -->
+  <ItemGroup Condition="'$(CtrlTNavManualPackaging)' != 'true'">
+    <VSCTCompile Include="CtrlTNavPackage.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+    </VSCTCompile>
+  </ItemGroup>
+
+  <!--
+    Manual packaging: pack-vsix.ps1 produces the merged resources file (containing Menus.ctmenu) with
+    VsixUtil.exe and passes its path here so it is embedded exactly like the VSSDK targets would.
+  -->
+  <ItemGroup Condition="'$(CtrlTNavManualPackaging)' == 'true' and '$(VsixCtoResource)' != ''">
+    <EmbeddedResource Include="$(VsixCtoResource)" LogicalName="_EmptyResource.resources" />
+  </ItemGroup>
+
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets"
+          Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(VSToolsPath)' != '' and Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
+
+</Project>

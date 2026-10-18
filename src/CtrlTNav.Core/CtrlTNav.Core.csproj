@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net8.0</TargetFrameworks>
+    <RootNamespace>CtrlTNav.Core</RootNamespace>
+    <AssemblyName>CtrlTNav.Core</AssemblyName>
+    <Description>Contracts, models and settings shared by the Ctrl+T Navigator extension and its engines.</Description>
+  </PropertyGroup>
+
+</Project>

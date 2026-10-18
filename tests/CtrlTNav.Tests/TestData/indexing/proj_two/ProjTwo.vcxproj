@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0">
+  <ItemGroup>
+    <ClCompile Include="..\sample.cpp" />
+    <ClInclude Include="proj_two_header.h" />
+    <None Include="..\sample.h" />
+  </ItemGroup>
+</Project>

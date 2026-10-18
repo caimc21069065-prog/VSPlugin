@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\sample.cpp" />
+    <ClInclude Include="..\sample.h" />
+    <ClInclude Include="$(ProjectDir)proj_one_extra.hpp" />
+    <None Include="..\notes.txt" />
+    <None Include="..\extra.inl" />
+    <ClCompile Include="..\sample.cpp" />
+    <ClCompile Include="..\wildcard*.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

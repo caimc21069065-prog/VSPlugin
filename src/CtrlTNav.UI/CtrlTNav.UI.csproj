@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net8.0-windows</TargetFrameworks>
+    <RootNamespace>CtrlTNav.UI</RootNamespace>
+    <AssemblyName>CtrlTNav.UI</AssemblyName>
+    <Description>Programmatic WPF popup UI for the Ctrl+T Navigator.</Description>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <!-- net8 flavour (used by CtrlTNav.UiDemo and the test harness) gets WPF from the Windows Desktop SDK. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <!--
+    net472 flavour (consumed by the VSIX) compiles against the .NET Framework reference assemblies.
+    No XAML, so no WPF build tasks are required: plain references are enough.
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CtrlTNav.Core\CtrlTNav.Core.csproj" />
+  </ItemGroup>
+
+</Project>

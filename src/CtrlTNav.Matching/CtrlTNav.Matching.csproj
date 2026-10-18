@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net8.0</TargetFrameworks>
+    <RootNamespace>CtrlTNav.Matching</RootNamespace>
+    <AssemblyName>CtrlTNav.Matching</AssemblyName>
+    <Description>Fuzzy matching, ranking, in-memory search index and recent-usage tracking.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CtrlTNav.Core\CtrlTNav.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CtrlTNav.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,57 @@
+VSIX: C:\Users\caimc\Desktop\VSPlugin\artifacts\CtrlTNav.GoToEverything.vsix
+Size: 133664 bytes (130.5 KB)
+SHA256: 10E717750A287581C2DDF91652BAEE106F4E893F7B691C8B0A199D144DEC4B52
+Packaged: 2026-10-18T17:14:59
+
+=== Container entries ===
+CtrlTNav.Core.dll                 32768 bytes
+CtrlTNav.Indexing.dll             67072 bytes
+CtrlTNav.Matching.dll             31232 bytes
+CtrlTNav.pkgdef                    3178 bytes
+CtrlTNav.UI.dll                   55808 bytes
+CtrlTNav.Vsix.dll                 90112 bytes
+extension.vsixmanifest             3474 bytes
+Resources/getting-started.txt      1659 bytes
+Resources/license.txt              1078 bytes
+Resources/logo.png                 8743 bytes
+
+=== Manifest ===
+Identity: CtrlTNav.GoToEverything 1.0.0
+InstallationTarget: Microsoft.VisualStudio.Community [17.0,19.0) (amd64)
+InstallationTarget: Microsoft.VisualStudio.Pro [17.0,19.0) (amd64)
+InstallationTarget: Microsoft.VisualStudio.Enterprise [17.0,19.0) (amd64)
+Asset: Microsoft.VisualStudio.VsPackage -> CtrlTNav.pkgdef
+
+=== Command table (VSCT) ===
+VSCT: errors   = 0
+VSCT: warnings = 0
+merged resources contain Menus.ctmenu
+
+=== pkgdef sections ===
+@="CtrlTNavPackage"
+"Class"="CtrlTNav.Vsix.CtrlTNavPackage"
+"CodeBase"="$PackageFolder$\CtrlTNav.Vsix.dll"
+"AllowsBackgroundLoad"=dword:00000001
+"{7cd65e41-7938-4826-a99a-0ec3b9bba331}"=dword:00000002
+"{7cd65e41-7938-4826-a99a-0ec3b9bba331}"=dword:00000002
+"{7cd65e41-7938-4826-a99a-0ec3b9bba331}"=", Menus.ctmenu, 1"
+"Package"="{7cd65e41-7938-4826-a99a-0ec3b9bba331}"
+"Package"="{7cd65e41-7938-4826-a99a-0ec3b9bba331}"
+"Page"="{906af635-e1aa-4b52-b9d3-1f2584b60e13}"
+"Package"="{7cd65e41-7938-4826-a99a-0ec3b9bba331}"
+"Package"="{7cd65e41-7938-4826-a99a-0ec3b9bba331}"
+
+=== pkgdef registry path headings ===
+[$RootKey$\Packages\{7cd65e41-7938-4826-a99a-0ec3b9bba331}]
+[$RootKey$\AutoLoadPackages\{adfc4e64-0397-11d1-9f4e-00a0c911004f}]
+[$RootKey$\AutoLoadPackages\{f1536ef8-92ec-443c-9ed7-fdadf150da82}]
+[$RootKey$\BindingPaths\{7CD65E41-7938-4826-A99A-0EC3B9BBA331}]
+[$RootKey$\Menus]
+[$RootKey$\ToolsOptionsPages\Ctrl+T Navigator]
+[$RootKey$\ToolsOptionsPages\Ctrl+T Navigator\General]
+[$RootKey$\AutomationProperties\Ctrl+T Navigator]
+[$RootKey$\AutomationProperties\Ctrl+T Navigator\General]
+[$RootKey$\AutomationProperties\Ctrl+T Navigator\General]
+
+=== Embedded managed resources ===
+_EmptyResource.resources -> Menus.ctmenu

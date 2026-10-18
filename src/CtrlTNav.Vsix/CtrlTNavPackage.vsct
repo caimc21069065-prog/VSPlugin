@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Command table for the Ctrl+T Navigator for C++ Visual Studio extension.
+
+  This file is compiled by the VSSDK command table compiler (vsct.exe) into the Menus.ctmenu
+  resource that is referenced by [ProvideMenuResource("Menus.ctmenu", 1)] on CtrlTNavPackage.
+
+  It is intentionally self-contained: every GUID and numeric id that is referenced is declared in
+  the <Symbols> section below, so vsct.exe does not need the VSSDK stdidcmd.h / vsshlids.h
+  headers on its include path. The well known values are:
+    guidSHLMainMenu  {D309F791-903F-11D0-9EFC-00A0C911004F}  built-in shell menus
+    IDG_VS_EDIT_GOTO 0x012D                                 Edit > Go To group
+    IDM_VS_MENU_TOOLS 0x0085                                Tools menu
+    guidVSStd97      {5EFC7975-14BC-11CF-9B2B-00AA00573819}  standard (global) command set,
+                                                             used as the key binding editor scope.
+  The package GUID is declared as well because <Commands package="..."> must point at it.
+-->
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable"
+              xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Commands package="guidCtrlTNavPackage">
+    <Groups>
+      <!--
+        Primary placement: Edit > Go To. This is the menu that also hosts the native
+        "Go to All" (Ctrl+T) command; the extension entry sits next to it so that users can
+        discover it and re-bind the shortcut under Tools > Options > Environment > Keyboard.
+      -->
+      <Group guid="guidCtrlTNavCmdSet" id="CtrlTNavEditGotoGroup" priority="0x0900">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_EDIT_GOTO"/>
+      </Group>
+
+      <!--
+        Secondary placement: the ToolTip of the Ctrl+, command. Keeping the second command in a
+        separate group means both commands have a menu home while sharing the same command set.
+      -->
+      <Group guid="guidCtrlTNavCmdSet" id="CtrlTNavToolsGroup" priority="0x0900">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="guidCtrlTNavCmdSet" id="cmdidGoToEverything" priority="0x0100" type="Button">
+        <Parent guid="guidCtrlTNavCmdSet" id="CtrlTNavEditGotoGroup"/>
+        <Strings>
+          <ButtonText>Go to Everything...</ButtonText>
+          <ToolTipText>Search for C/C++ types, symbols and files (Ctrl+T)</ToolTipText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidCtrlTNavCmdSet" id="cmdidGoToEverythingAlt" priority="0x0101" type="Button">
+        <Parent guid="guidCtrlTNavCmdSet" id="CtrlTNavToolsGroup"/>
+        <Strings>
+          <ButtonText>Go to Everything (Ctrl+,)</ButtonText>
+          <ToolTipText>Alternative shortcut for Go to Everything; when disabled in the options it opens Tools &gt; Options instead.</ToolTipText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <KeyBindings>
+    <!-- Primary shortcut: Ctrl+T, global (standard editor) scope. -->
+    <KeyBinding guid="guidCtrlTNavCmdSet" id="cmdidGoToEverything" editor="guidVSStd97" key1="T" mod1="CONTROL"/>
+
+    <!-- Backup shortcut: Ctrl+, as described by spec F11. -->
+    <KeyBinding guid="guidCtrlTNavCmdSet" id="cmdidGoToEverythingAlt" editor="guidVSStd97" key1="," mod1="CONTROL"/>
+  </KeyBindings>
+
+  <Symbols>
+    <!-- Package identity: <Commands package="..."/> resolves against this symbol. -->
+    <GuidSymbol name="guidCtrlTNavPackage" value="{7cd65e41-7938-4826-a99a-0ec3b9bba331}" />
+
+    <!-- Command set that owns the two commands, their groups and the key bindings. -->
+    <GuidSymbol name="guidCtrlTNavCmdSet" value="{deff788a-7d39-4399-aee3-e8bb272d4bd0}">
+      <IDSymbol name="cmdidGoToEverything" value="0x0100" />
+      <IDSymbol name="cmdidGoToEverythingAlt" value="0x0101" />
+      <IDSymbol name="CtrlTNavEditGotoGroup" value="0x1020" />
+      <IDSymbol name="CtrlTNavToolsGroup" value="0x1021" />
+    </GuidSymbol>
+
+    <!-- Built-in shell menus (vsshlids.h). -->
+    <GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">
+      <IDSymbol name="IDG_VS_EDIT_GOTO" value="0x012D" />
+      <IDSymbol name="IDM_VS_MENU_TOOLS" value="0x0085" />
+    </GuidSymbol>
+
+    <!-- Standard command set: used as the editor scope for global key bindings (stdidcmd.h). -->
+    <GuidSymbol name="guidVSStd97" value="{5efc7975-14bc-11cf-9b2b-00aa00573819}" />
+  </Symbols>
+</CommandTable>

@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+dist/
+*.user
+*.suo
+.vs/
+.idea/
+
+# Release artifacts (screenshots are documentation assets and are tracked)
+artifacts/*
+!artifacts/screenshots/
+!artifacts/screenshots/*.png
+
+# Local package/tool caches
+.nuget/
+.dotnet/
+*.nupkg
+*.snupkg
+
+# Test/temporary output
+TestResults/
+*.binlog
+*.log
+!docs/evidence/*.log

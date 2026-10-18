@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>CtrlTNav.UiDemo</RootNamespace>
+    <AssemblyName>CtrlTNav.UiDemo</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CtrlTNav.Core\CtrlTNav.Core.csproj" />
+    <ProjectReference Include="..\..\src\CtrlTNav.UI\CtrlTNav.UI.csproj" />
+  </ItemGroup>
+
+</Project>

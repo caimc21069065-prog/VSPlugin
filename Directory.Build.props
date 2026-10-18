@@ -1,0 +1,33 @@
+<Project>
+  <!--
+    Shared build settings for the Ctrl+T Navigator (C++) solution.
+    Keep this file free of project-specific logic; see docs/BUILD.md for the build story.
+  -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <DebugType>portable</DebugType>
+    <Version>1.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Company>CtrlTNav</Company>
+    <Product>Ctrl+T Navigator for C++</Product>
+    <Authors>CtrlTNav</Authors>
+    <Copyright>Copyright (c) 2026 CtrlTNav contributors</Copyright>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <AnalysisLevel>none</AnalysisLevel>
+    <NuGetAudit>false</NuGetAudit>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <NoWarn>$(NoWarn);CS1591;NU1701;CS8618;CA1416</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- Allows compiling net472 targets on machines without the .NET Framework targeting pack (CI / dotnet CLI only). -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

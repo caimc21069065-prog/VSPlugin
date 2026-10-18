@@ -1,0 +1,39 @@
+Ctrl+T Navigator for C++ - Getting Started
+==========================================
+
+Press Ctrl+T (or Ctrl+,) anywhere in Visual Studio to open the Go to Everything popup.
+Type to filter types, symbols, macros and files; press Enter to jump, Esc to close.
+
+What you can search
+-------------------
+  everything          types, functions, variables, macros and files
+  t <text>            types only         (class, struct, enum, union, alias ...)
+  f <text>            files only
+  #<text>             symbols only       (also: s <text>)
+  m <text>            members only
+
+Tips
+----
+* Up/Down/PageUp/PageDown/Home/End move the selection; Enter opens the selected item.
+* Tab cycles through the filter prefixes.
+* Ctrl+C copies the full path of the selected item.
+* Recently used items are ranked higher; this data is stored locally in
+  %LOCALAPPDATA%\CtrlTNav\recent-usage.dat.
+
+Keyboard shortcuts
+------------------
+  Ctrl+T   Go to Everything (Edit > Go To > Go to Everything...)
+  Ctrl+,   Alternative shortcut (Tools > Go to Everything (Ctrl+,))
+
+Settings
+--------
+Tools > Options > Ctrl+T Navigator > General
+
+  * Override Ctrl+T: when off, Ctrl+T executes the built-in Edit.GoToAll command.
+  * Use Ctrl+, shortcut: when off, Ctrl+, opens Tools > Options instead.
+  * Auto start indexing / index scope / excluded globs / source extensions.
+  * Result count, recently used weighting, path and line-number display.
+
+The index is built in the background as soon as a solution is opened. It is refreshed when you save
+a file (incremental, typically well under 2 s) and when files change on disk. Logs are written to
+%LOCALAPPDATA%\CtrlTNav\ctrltnav.log.
